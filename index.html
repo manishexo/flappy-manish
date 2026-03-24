@@ -1,1 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flappy Custom</title>
 
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial;
+}
+
+canvas {
+    display: block;
+    background: linear-gradient(to bottom, #70c5ce, #ffffff);
+}
+
+#score {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 30px;
+    color: white;
+    font-weight: bold;
+}
+
+#startScreen {
+    position: absolute;
+    width: 100%;
+    top: 40%;
+    text-align: center;
+    font-size: 30px;
+    color: white;
+}
+
+#gameOver {
+    display: none;
+    position: absolute;
+    width: 100%;
+    top: 40%;
+    text-align: center;
+    font-size: 30px;
+    color: red;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="score">0</div>
+<div id="startScreen">Tap to Start</div>
+
+<div id="gameOver">
+    Game Over<br>
+    <button onclick="restart()">Restart</button>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<audio id="hitSound" src="hit.mp3"></audio>
+<audio id="bgMusic" src="bg.mp3" loop></audio>
+
+<script>
+let canvas = document.getElementById("gameCanvas");
+let ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// Load assets
+let playerImg = new Image();
+playerImg.src = "player.png";
+
+let hitSound = document.getElementById("hitSound");
+let bgMusic = document.getElementById("bgMusic");
+
+bgMusic.volume = 0.5;
+
+// Player
+let player = {
+    x: 100,
+    y: 200,
+    width: 60,
+    height: 60,
+    velocity: 0,
+    gravity: 0.5,
+    lift: -10
+};
+
+// Pipes
+let pipes = [];
+
+// Game state
+let score = 0;
+let gameStarted = false;
+let gameOver = false;
+
+// Spawn pipes
+function spawnPipe() {
+    let gap = 180;
+    let top = Math.random() * (canvas.height - gap - 200) + 50;
+
+    pipes.push({
+        x: canvas.width,
+        width: 70,
+        top: top,
+        bottom: top + gap,
+        passed: false
+    });
+}
+
+// Draw player
+function drawPlayer() {
+    ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+}
+
+// Draw pipes
+function drawPipes() {
+    ctx.fillStyle = "#00ff99";
+
+    pipes.forEach(pipe => {
+        ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
+        ctx.fillRect(pipe.x, pipe.bottom, pipe.width, canvas.height);
+    });
+}
+
+// Game loop
+function update() {
+    if (!gameStarted) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Gravity
+    player.velocity += player.gravity;
+    player.y += player.velocity;
+
+    drawPlayer();
+
+    pipes.forEach(pipe => {
+        pipe.x -= 4;
+
+        // Collision
+        if (
+            player.x < pipe.x + pipe.width &&
+            player.x + player.width > pipe.x &&
+            (player.y < pipe.top || player.y + player.height > pipe.bottom)
+        ) {
+            endGame();
+        }
+
+        // Score
+        if (!pipe.passed && pipe.x < player.x) {
+            pipe.passed = true;
+            score++;
+            document.getElementById("score").innerText = score;
+        }
+    });
+
+    drawPipes();
+
+    // Ground / ceiling collision
+    if (player.y > canvas.height || player.y < 0) {
+        endGame();
+    }
+
+    requestAnimationFrame(update);
+}
+
+// Flap
+function flap() {
+    if (!gameStarted) {
+        gameStarted = true;
+        document.getElementById("startScreen").style.display = "none";
+
+        bgMusic.play(); // Start music
+
+        setInterval(spawnPipe, 1500);
+        update();
+    }
+
+    player.velocity = player.lift;
+}
+
+// End game
+function endGame() {
+    if (gameOver) return;
+
+    gameOver = true;
+    gameStarted = false;
+
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+
+    hitSound.play();
+
+    document.getElementById("gameOver").style.display = "block";
+}
+
+// Restart
+function restart() {
+    location.reload();
+}
+
+// Controls
+document.addEventListener("touchstart", flap);
+document.addEventListener("click", flap);
+
+</script>
+
+</body>
+</html>
