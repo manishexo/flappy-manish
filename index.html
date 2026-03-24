@@ -64,14 +64,13 @@ let ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Load assets
 let playerImg = new Image();
 playerImg.src = "player.png";
 let hitSound = document.getElementById("hitSound");
 let bgMusic = document.getElementById("bgMusic");
 bgMusic.volume = 0.5;
 
-// Game state
+
 let player = { x:100, y:200, width:60, height:60, velocity:0, gravity:0.5, lift:-10 };
 let pipes = [];
 let score = 0;
@@ -79,19 +78,19 @@ let gameStarted = false;
 let gameOver = false;
 let soundEnabled = false;
 
-// Spawn pipes
+
 function spawnPipe() {
     let gap = 180;
     let top = Math.random() * (canvas.height - gap - 200) + 50;
     pipes.push({ x:canvas.width, width:70, top:top, bottom:top+gap, passed:false });
 }
 
-// Draw player
+
 function drawPlayer() {
     ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
 }
 
-// Draw pipes
+
 function drawPipes() {
     ctx.fillStyle = "#00ff99";
     pipes.forEach(pipe => {
@@ -100,7 +99,7 @@ function drawPipes() {
     });
 }
 
-// Game loop
+
 function update() {
     if (!gameStarted) return;
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -132,7 +131,7 @@ function update() {
     requestAnimationFrame(update);
 }
 
-// Flap function
+
 function flap() {
     if (!gameStarted) {
         gameStarted = true;
@@ -145,7 +144,7 @@ function flap() {
     player.velocity = player.lift;
 }
 
-// End game
+
 function endGame() {
     if (gameOver) return;
     gameOver = true;
@@ -156,10 +155,10 @@ function endGame() {
     document.getElementById("gameOver").style.display = "block";
 }
 
-// Restart
+
 function restart() { location.reload(); }
 
-// Controls
+
 document.addEventListener("touchstart", flap);
 document.addEventListener("click", flap);
 </script>
